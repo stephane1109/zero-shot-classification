@@ -1,40 +1,75 @@
+# pip install torch
+# pip install transformers
 from transformers import pipeline
 
-# Création du pipeline de classification zero-shot
-# On utilise le modèle NLI mDeBERTa pour faire de la classification zero-shot en construisant
-# des hypothèses à partir des étiquettes fournies.
-classifieur = pipeline(
-    task="zero-shot-classification",
-    model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
-)
+def afficher_resultats_table(resultat):
+    """
+    Affiche les résultats de la classification zero-shot sous forme de tableau
+    dans le terminal à partir du dictionnaire renvoyé par le pipeline.
+    """
+    sequence = resultat["sequence"]
+    labels = resultat["labels"]
+    scores = resultat["scores"]
 
-# Texte à analyser (exemple)
-texte = (
-    "Je suis étudiant, je me sens complètement dépassé par mes études et ma vie en ce moment. "
-    "J’ai l’impression de perdre pied et je ne sais plus vers qui me tourner. "
-    "Ces derniers temps, je pense de plus en plus à en finir et à mettre fin à mes jours, "
-    "parce que je ne vois plus d’issue. Est-ce que tu peux m’aider ?"
-)
+    # Affichage du texte analysé
+    print("Texte analysé :")
+    print(sequence)
+    print()
 
-# Définition des catégories de détresse et d’idéation suicidaire (étiquettes)
-# Ces étiquettes servent à construire des hypothèses en langage naturel.
-etiquettes = [
-    "détresse psychologique sans idées suicidaires",
-    "détresse psychologique avec idées suicidaires",
-    "idées suicidaires sans plan concret",
-    "idées suicidaires avec plan concret"
-]
+    # Titre du tableau
+    print("Résultats de la classification zero-shot")
+    print("-" * 90)
+    print(f"{'Rang':<6}{'Étiquette':<65}{'Score':>10}")
+    print("-" * 90)
 
-# Appel du classifieur en mode zero-shot
-# Le paramètre hypothesis_template contrôle la phrase utilisée pour la tâche NLI.
-# Pour chaque étiquette, le modèle évalue dans quelle mesure le texte implique
-# l’hypothèse « Ce message exprime <étiquette> ».
-resultat = classifieur(
-    sequences=texte,
-    candidate_labels=etiquettes,
-    hypothesis_template="Ce message exprime {}.",
-    multi_label=False  # on force une seule catégorie principale
-)
+    # Affichage de chaque étiquette avec son score
+    for i, (label, score) in enumerate(zip(labels, scores), start=1):
+        print(f"{i:<6}{label:<65}{score:>10.4f}")
 
-# Affichage du résultat brut (scores et étiquette prédite)
-print(resultat)
+    print("-" * 90)
+
+
+if __name__ == "__main__":
+    # Création du pipeline de classification zero-shot
+    # On utilise le modèle NLI mDeBERTa pour faire de la classification zero-shot
+    # en construisant des hypothèses à partir des étiquettes fournies.
+    classifieur = pipeline(
+        task="zero-shot-classification",
+        model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+    )
+
+    # Texte à analyser (exemple)
+    texte = (
+        "Je suis étudiant, je me sens complètement dépassé par mes études et ma vie en ce moment. "
+        "J’ai l’impression de perdre pied et je ne sais plus vers qui me tourner. "
+        "Ces derniers temps, je pense de plus en plus à en finir et à mettre fin à mes jours, "
+        "parce que je ne vois plus d’issue. Est-ce que tu peux m’aider ?"
+    )
+
+    # Définition des catégories de détresse et d’idéation suicidaire (étiquettes)
+    # Ces étiquettes servent à construire des hypothèses en langage naturel.
+    etiquettes = [
+        "détresse psychologique sans idées suicidaires",
+        "détresse psychologique avec idées suicidaires",
+        "idées suicidaires sans plan concret",
+        "idées suicidaires avec plan concret"
+    ]
+
+    # Appel du classifieur en mode zero-shot
+    # Pour chaque étiquette, le modèle évalue dans quelle mesure le texte implique
+    # l’hypothèse « Ce message exprime <étiquette> ».
+    resultat = classifieur(
+        sequences=texte,
+        candidate_labels=etiquettes,
+        hypothesis_template="Ce message exprime {}.",
+        multi_label=False  # on force une seule catégorie principale
+    )
+
+    # Affichage du dictionnaire brut (comme dans ton exemple)
+    print("Dictionnaire brut renvoyé par le pipeline :")
+    print(resultat)
+    print()
+
+    # Affichage sous forme de tableau dans le terminal
+    afficher_resultats_table(resultat)
+
