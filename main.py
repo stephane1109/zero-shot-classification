@@ -1,5 +1,6 @@
 # pip install torch
 # pip install transformers
+
 from transformers import pipeline
 
 def afficher_resultats_table(resultat):
@@ -38,28 +39,13 @@ if __name__ == "__main__":
         model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
     )
 
-    # Texte brut de la personne (exemple)
-    texte_brut = (
+    # Texte de la personne (exemple)
+    texte = (
         "Je suis étudiant, je me sens complètement dépassé par mes études et ma vie en ce moment. "
         "J’ai l’impression de perdre pied et je ne sais plus vers qui me tourner. "
         "Ces derniers temps, je pense de plus en plus à en finir et à mettre fin à mes jours, "
         "parce que je ne vois plus d’issue. Est-ce que tu peux m’aider ?"
     )
-
-    # Demande éventuelle de contextualisation à l'utilisateur
-    print("Vous pouvez saisir une contextualisation (exemple : 'message envoyé à Allo Suicide').")
-    print("Si vous ne souhaitez pas ajouter de contexte, appuyez simplement sur Entrée.")
-    contextualisation = input("Contextualisation : ").strip()
-
-    # Construction du texte envoyé au modèle et du gabarit d'hypothèse
-    if contextualisation:
-        # Si une contextualisation est saisie, on la place avant le message
-        texte = contextualisation + "\nMessage : " + texte_brut
-        hypothesis_template = "Dans ce contexte, ce message correspond à {}."
-    else:
-        # Si aucune contextualisation n'est saisie, on utilise uniquement le message brut
-        texte = texte_brut
-        hypothesis_template = "Ce message exprime {}."
 
     # Définition des catégories de détresse et d’idéation suicidaire (étiquettes)
     etiquettes = [
@@ -70,18 +56,18 @@ if __name__ == "__main__":
     ]
 
     # Appel du classifieur en mode zero-shot
+    # On explicite le gabarit par défaut de la pipeline : "This example is {}."
     resultat = classifieur(
         sequences=texte,
         candidate_labels=etiquettes,
-        hypothesis_template=hypothesis_template,
-        multi_label=False  # on force une seule catégorie principale
+        hypothesis_template="This example is {}.",
+        multi_label=False
     )
 
-    # Affichage du dictionnaire brut (comme dans ton exemple)
+    # Affichage du dictionnaire brut
     print("Dictionnaire brut renvoyé par le pipeline :")
     print(resultat)
     print()
 
     # Affichage sous forme de tableau dans le terminal
     afficher_resultats_table(resultat)
-
